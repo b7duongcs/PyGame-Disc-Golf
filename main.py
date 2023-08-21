@@ -11,7 +11,7 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
 FPS = 60
 TICKS_PER_FRAME = 1000/FPS
-TIME_LIMIT = 2000
+TIME_LIMIT = 10000
 
 #colours
 GREEN = (0,128,0)
@@ -77,6 +77,8 @@ LINE_LEN = 100
 LINE_THICKNESS = 3
 ANGLE_UI_Y = PB_Y
 ANGLE_TITLE_Y_OFFSET = 30
+POWER_SCALE = 0.2
+DEGREE_SCALE = 0.5
 
 #vertical angle
 VA_BL_X = PB_X + PB_WIDTH + UI_DISTANCE
@@ -168,15 +170,47 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
 
     pygame.display.update()
 
-def controls(keys_pressed, disc):
-    if keys_pressed[pygame.K_w]:
-        disc.y -= 1
-    if keys_pressed[pygame.K_a]:
-        disc.x -= 1
-    if keys_pressed[pygame.K_s]:
-        disc.y += 1
-    if keys_pressed[pygame.K_d]:
-        disc.x += 1
+def controls(keys_pressed, parameters):
+    #e for ccw, r for cw
+    #1,2 for power (0 - 27 in intervals of 0.25)
+    #3,4 for launch angle (-90 - 90, intervals of 1)
+    #5,6 for launch direction (-90 - 90, intervals of 1)
+    #7,8 for nose (-90 - 90, intervals of 1)
+    #9,0 for roll (-90 - 90, intervals of 1)
+    if keys_pressed[pygame.K_e]:
+        parameters.rotation = -1
+    if keys_pressed[pygame.K_r]:
+        parameters.rotation = 1
+    if keys_pressed[pygame.K_1]:
+        if parameters.launch_speed > 0:
+            parameters.launch_speed -= POWER_SCALE
+    if keys_pressed[pygame.K_2]:
+        if parameters.launch_speed < 27:
+            parameters.launch_speed += POWER_SCALE
+    if keys_pressed[pygame.K_3]:
+        if parameters.launch_va > -90:
+            parameters.launch_va -= DEGREE_SCALE
+    if keys_pressed[pygame.K_4]:
+        if parameters.launch_va < 90:
+            parameters.launch_va += DEGREE_SCALE
+    if keys_pressed[pygame.K_5]:
+        if parameters.launch_ha > -90:
+            parameters.launch_ha -= DEGREE_SCALE
+    if keys_pressed[pygame.K_6]:
+        if parameters.launch_ha < 90:
+            parameters.launch_ha += DEGREE_SCALE
+    if keys_pressed[pygame.K_7]:
+        if parameters.nose > -90:
+            parameters.nose -= DEGREE_SCALE
+    if keys_pressed[pygame.K_8]:
+        if parameters.nose < 90:
+            parameters.nose += DEGREE_SCALE
+    if keys_pressed[pygame.K_9]:
+        if parameters.roll > -90:
+            parameters.roll -= DEGREE_SCALE
+    if keys_pressed[pygame.K_0]:
+        if parameters.roll < 90:
+            parameters.roll += DEGREE_SCALE
 
 def main():
     disc = pygame.Rect(START_X, START_Y, DISC_SIZE, DISC_SIZE)
@@ -206,7 +240,7 @@ def main():
         if pre_launch:
             draw_window(disc, parameters, graph_disc, GREEN, current_time)
             keys_pressed = pygame.key.get_pressed()
-            controls(keys_pressed, disc)     
+            controls(keys_pressed, parameters)     
         else:
             launching_time = current_time - transition_time
             if launching_time > disc_pos_index * INTERVAL_LEN:

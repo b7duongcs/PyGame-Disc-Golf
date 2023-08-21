@@ -4,7 +4,7 @@ from disc_flight import *
 
 pygame.init()
 
-WIDTH, HEIGHT = 1500, 900
+WIDTH, HEIGHT = 1000, 900
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
 
@@ -81,7 +81,7 @@ def main():
         
         current_time = pygame.time.get_ticks()
         if pre_launch and current_time >= TIME_LIMIT:
-            position_array = get_position_array()
+            position_array = throw("CW", 22.35, 10, 0, 0, 12)
             pre_launch = False
             transition_time = current_time
 
@@ -95,10 +95,9 @@ def main():
                 disc_pos_index += 1
                 current_position = position_array[disc_pos_index]
                 if current_position[2] <= 0:
-                    print("z position is ", current_position[2])
                     break
-                disc.x = START_X + current_position[0]
-                disc.y = START_Y + current_position[1]
+                disc.x = START_X + current_position[0]*5
+                disc.y = START_Y + current_position[1]*5
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]/4
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - current_position[2]
             draw_window(disc, graph_disc, BLACK, -1, disc_pos_index)

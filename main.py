@@ -25,7 +25,8 @@ TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
 GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
 ROTATION_FONT = pygame.font.Font('freesansbold.ttf', 25)
 POWER_FONT = pygame.font.Font('freesansbold.ttf', 25)
-ANGLE_FONT = pygame.font.Font('freesansbold.ttf', 15)
+ROT_TITLE_FONT = pygame.font.Font('freesansbold.ttf', 25)
+ANGLE_FONT = pygame.font.Font('freesansbold.ttf', 12)
 
 #adjustment factors
 FT_TO_PIXELS = 5
@@ -33,6 +34,7 @@ INTERVAL_LEN = 50
 BORDER = 10
 BAR_THICKNESS = 4
 UI_DISTANCE = 50
+UI_OFFSET = 225
 
 #disc constants
 DISC_SIZE = 32
@@ -44,18 +46,24 @@ START_Y = (HEIGHT - DISC_SIZE) / 2
 #launch speed
 MAX_SPEED = 27 #m/s
 PIXELS_PER_MS = 7
-PB_X = START_X
+PB_X = START_X + UI_OFFSET
 PB_Y = HEIGHT - (MAX_SPEED * PIXELS_PER_MS + BORDER)
 PB_WIDTH = 150
 PB_HEIGHT = MAX_SPEED * PIXELS_PER_MS
 POWER_BAR = pygame.Rect(PB_X, PB_Y, PB_WIDTH, PB_HEIGHT)
+POWER_TITLE = POWER_FONT.render("Power", True, WHITE)
+POWER_TITLE_Y = HEIGHT - BORDER*2 - POWER_TITLE.get_height()
+POWER_TITLE_X = PB_X + (PB_WIDTH - POWER_TITLE.get_width())/2
 
 #rotation
 ROT_HEIGHT = 50
-ROT_X = START_X
+ROT_X = PB_X
 ROT_Y = PB_Y - ROT_HEIGHT - BORDER
 ROT_WIDTH = PB_WIDTH
 ROT_BUTTON = pygame.Rect(ROT_X, ROT_Y, ROT_WIDTH, ROT_HEIGHT)
+ROT_TITLE = ROT_TITLE_FONT.render("Rotation", True, WHITE)
+ROT_TITLE_X = ROT_X + (ROT_WIDTH - ROT_TITLE.get_width())/2
+ROT_TITLE_Y = ROT_Y - BORDER - ROT_TITLE.get_height()
 
 COVER_Y = ROT_Y + BAR_THICKNESS
 COVER_W = (ROT_WIDTH - 2*BAR_THICKNESS) / 2
@@ -97,7 +105,7 @@ def draw_angle_ui(x, angle, title):
     angle_y = LINE_LEN * np.sin(np.radians(angle))
 
     text = ANGLE_FONT.render(title, True, WHITE)
-    WIN.blit(text, (x, ANGLE_UI_Y - ANGLE_TITLE_Y_OFFSET))
+    WIN.blit(text, (x + (LINE_LEN - text.get_width())/2, ANGLE_UI_Y - ANGLE_TITLE_Y_OFFSET))
 
     pygame.draw.line(WIN, BLACK, (x, ANGLE_UI_Y), (x, ANGLE_UI_Y + PB_HEIGHT), LINE_THICKNESS)
     pygame.draw.line(WIN, GREY, (x, mp_y), (x + LINE_LEN, mp_y), LINE_THICKNESS)
@@ -134,6 +142,9 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         power_bar_fill = pygame.Rect(PB_X + BAR_THICKNESS, PB_Y + PIXELS_PER_MS*(27 - parameters.launch_speed), PB_WIDTH - 2*BAR_THICKNESS, parameters.launch_speed * PIXELS_PER_MS - 3)
         pygame.draw.rect(WIN, WHITE, POWER_BAR, BAR_THICKNESS)
         pygame.draw.rect(WIN, RED, power_bar_fill, 0)
+
+        WIN.blit(POWER_TITLE, (POWER_TITLE_X, POWER_TITLE_Y))
+        WIN.blit(ROT_TITLE, (ROT_TITLE_X, ROT_TITLE_Y))
 
         #draw angles
         draw_angle_ui(VA_BL_X, parameters.launch_va, "Launch Angle")

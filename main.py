@@ -22,11 +22,13 @@ BLACK = (0, 0, 0)
 #fonts
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
 GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
+ROTATION_FONT = pygame.font.Font('freesansbold.ttf', 25)
 
 #adjustment factors
 FT_TO_PIXELS = 5
 INTERVAL_LEN = 50
 BORDER = 10
+BAR_THICKNESS = 4
 
 #disc constants
 DISC_SIZE = 32
@@ -35,14 +37,27 @@ DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
 START_X = BORDER
 START_Y = (HEIGHT - DISC_SIZE) / 2
 
-#parameter controls
+#launch speed
 MAX_SPEED = 27 #m/s
 PIXELS_PER_MS = 7
 PB_X = START_X
 PB_Y = HEIGHT - (MAX_SPEED * PIXELS_PER_MS + BORDER)
 PB_WIDTH = 150
-BAR_THICKNESS = 4
 POWER_BAR = pygame.Rect(PB_X, PB_Y, PB_WIDTH, MAX_SPEED * PIXELS_PER_MS)
+
+#rotation
+ROT_HEIGHT = 50
+ROT_X = START_X
+ROT_Y = PB_Y - ROT_HEIGHT - BORDER
+ROT_WIDTH = PB_WIDTH
+ROT_BUTTON = pygame.Rect(ROT_X, ROT_Y, ROT_WIDTH, ROT_HEIGHT)
+
+COVER_Y = ROT_Y + BAR_THICKNESS
+COVER_W = (ROT_WIDTH - 2*BAR_THICKNESS) / 2
+COVER_H = ROT_HEIGHT - 2*BAR_THICKNESS
+COVER_OFFSET = (ROT_WIDTH - 2*BAR_THICKNESS) / 2
+
+ROT_TEXT_Y = COVER_Y + BORDER
 
 #xz graph constants
 GRAPH_UPPER_Y_BOUND = HEIGHT - 65
@@ -54,8 +69,6 @@ GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
 def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
-    power_bar_fill = pygame.Rect(PB_X + BAR_THICKNESS, PB_Y + PIXELS_PER_MS*(27 - parameters.launch_speed), PB_WIDTH - 2*BAR_THICKNESS, parameters.launch_speed * PIXELS_PER_MS - 3)
-
     WIN.fill(colour)
     WIN.blit(DISC, (disc.x, disc.y))
 
@@ -64,8 +77,25 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         timer = int(TIME_LIMIT / 1000 - int(time / 1000))
 
         #launch rotation
-
+        cover_x = ROT_X + COVER_OFFSET + BAR_THICKNESS
+        rotation_dir = "CW"
+        rot_text_x = ROT_X + BAR_THICKNESS + BORDER
+        if parameters.rotation == -1:
+            rotation_dir = "CCW"
+            rot_text_x = cover_x
+            cover_x -= COVER_OFFSET
+            
+        rotation_text = ROTATION_FONT.render(rotation_dir, True, WHITE)
+        rot_text_x = ROT_X + BAR_THICKNESS + (COVER_W - rotation_text.get_width())/2
+        if parameters.rotation == -1:
+            rot_text_x += COVER_OFFSET
+        WIN.blit(rotation_text, (rot_text_x, ROT_TEXT_Y))
+        cover = pygame.Rect(cover_x, COVER_Y, COVER_W, COVER_H)
+        pygame.draw.rect(WIN, WHITE, ROT_BUTTON, BAR_THICKNESS)
+        pygame.draw.rect(WIN, RED, cover, 0)
+        
         #launch speed
+        power_bar_fill = pygame.Rect(PB_X + BAR_THICKNESS, PB_Y + PIXELS_PER_MS*(27 - parameters.launch_speed), PB_WIDTH - 2*BAR_THICKNESS, parameters.launch_speed * PIXELS_PER_MS - 3)
         pygame.draw.rect(WIN, WHITE, POWER_BAR, BAR_THICKNESS)
         pygame.draw.rect(WIN, RED, power_bar_fill, 0)
 
@@ -76,7 +106,7 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         #launch nose angle
 
         #launch roll angle
-        
+
 
     else:
         timer = int(ticks/20)

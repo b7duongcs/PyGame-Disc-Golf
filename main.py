@@ -30,6 +30,10 @@ DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
 START_X = 10
 START_Y = (HEIGHT - DISC_SIZE) / 2
 
+#adjustment factors
+FT_TO_PIXELS = 5
+INTERVAL_LEN = 50
+
 #xz graph constants
 GRAPH_UPPER_Y_BOUND = HEIGHT - 65
 GRAPH_LOWER_Y_BOUND = HEIGHT - 15
@@ -48,11 +52,14 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         timer = int(TIME_LIMIT / 1000 - int(time / 1000))
     else:
         timer = int(ticks/20)
+
+        #graph
         graph_title = GRAPH_FONT.render("Elevation (y) vs Forward Distance (x)", True, WHITE)
         WIN.blit(graph_title, (GRAPH_TITLE_X, GRAPH_TITLE_Y))
         pygame.draw.rect(WIN, WHITE, Z_BAR, 1)
         pygame.draw.rect(WIN, WHITE, X_BAR, 1)
         pygame.draw.rect(WIN, RED, graph_disc, 0)
+        
     timer_text = TIMER_FONT.render(str(timer), True, WHITE)
     WIN.blit(timer_text, (10,10))
 
@@ -99,13 +106,13 @@ def main():
             controls(keys_pressed, disc)     
         else:
             launching_time = current_time - transition_time
-            if launching_time > disc_pos_index * 50:
+            if launching_time > disc_pos_index * INTERVAL_LEN:
                 disc_pos_index += 1
                 current_position = position_array[disc_pos_index]
                 if current_position[2] <= 0:
                     break
-                disc.x = START_X + current_position[0]*5
-                disc.y = START_Y + current_position[1]*5
+                disc.x = START_X + current_position[0]*FT_TO_PIXELS
+                disc.y = START_Y + current_position[1]*FT_TO_PIXELS
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - current_position[2]
             draw_window(disc, parameters, graph_disc, BLACK, -1, disc_pos_index)

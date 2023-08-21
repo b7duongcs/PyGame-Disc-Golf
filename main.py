@@ -23,16 +23,26 @@ BLACK = (0, 0, 0)
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
 GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
 
+#adjustment factors
+FT_TO_PIXELS = 5
+INTERVAL_LEN = 50
+BORDER = 10
+
 #disc constants
 DISC_SIZE = 32
 DISC_IMAGE = pygame.image.load(os.path.join('assets', 'disc_sprite.png'))
 DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
-START_X = 10
+START_X = BORDER
 START_Y = (HEIGHT - DISC_SIZE) / 2
 
-#adjustment factors
-FT_TO_PIXELS = 5
-INTERVAL_LEN = 50
+#parameter controls
+MAX_SPEED = 27 #m/s
+PIXELS_PER_MS = 7
+PB_X = START_X
+PB_Y = HEIGHT - (MAX_SPEED * PIXELS_PER_MS + BORDER)
+PB_WIDTH = 150
+BAR_THICKNESS = 4
+POWER_BAR = pygame.Rect(PB_X, PB_Y, PB_WIDTH, MAX_SPEED * PIXELS_PER_MS)
 
 #xz graph constants
 GRAPH_UPPER_Y_BOUND = HEIGHT - 65
@@ -44,12 +54,30 @@ GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
 def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
+    power_bar_fill = pygame.Rect(PB_X + BAR_THICKNESS, PB_Y + PIXELS_PER_MS*(27 - parameters.launch_speed), PB_WIDTH - 2*BAR_THICKNESS, parameters.launch_speed * PIXELS_PER_MS - 3)
+
     WIN.fill(colour)
     WIN.blit(DISC, (disc.x, disc.y))
 
     timer = 0
     if time >= 0:
         timer = int(TIME_LIMIT / 1000 - int(time / 1000))
+
+        #launch rotation
+
+        #launch speed
+        pygame.draw.rect(WIN, WHITE, POWER_BAR, BAR_THICKNESS)
+        pygame.draw.rect(WIN, RED, power_bar_fill, 0)
+
+        #launch vertical angle
+
+        #launch horizontal angle
+
+        #launch nose angle
+
+        #launch roll angle
+        
+
     else:
         timer = int(ticks/20)
 
@@ -59,9 +87,9 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         pygame.draw.rect(WIN, WHITE, Z_BAR, 1)
         pygame.draw.rect(WIN, WHITE, X_BAR, 1)
         pygame.draw.rect(WIN, RED, graph_disc, 0)
-        
+
     timer_text = TIMER_FONT.render(str(timer), True, WHITE)
-    WIN.blit(timer_text, (10,10))
+    WIN.blit(timer_text, (BORDER, BORDER))
 
     pygame.display.update()
 

@@ -1,13 +1,36 @@
 import pygame
 import os
 from disc_flight import *
+from parameters import *
 
 pygame.init()
 
+#display constants
 WIDTH, HEIGHT = 1000, 900
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
+FPS = 60
+TICKS_PER_FRAME = 1000/FPS
+TIME_LIMIT = 2000
 
+#colours
+GREEN = (0,128,0)
+RED = (255,0,0)
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+#fonts
+TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
+GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
+
+#disc constants
+DISC_SIZE = 32
+DISC_IMAGE = pygame.image.load(os.path.join('assets', 'disc_sprite.png'))
+DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
+START_X = 10
+START_Y = (HEIGHT - DISC_SIZE) / 2
+
+#xz graph constants
 GRAPH_UPPER_Y_BOUND = HEIGHT - 65
 GRAPH_LOWER_Y_BOUND = HEIGHT - 15
 GRAPH_LOWER_X_BOUND = WIDTH - 215
@@ -16,28 +39,10 @@ X_BAR = pygame.Rect(GRAPH_LOWER_X_BOUND - 2, GRAPH_LOWER_Y_BOUND + 5, 200, 2)
 GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
-GREEN = (0,128,0)
-RED = (255,0,0)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-FPS = 60
-TICKS_PER_FRAME = 1000/FPS
-TIME_LIMIT = 2000
-
-TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
-GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
-
-DISC_SIZE = 32
-DISC_IMAGE = pygame.image.load(os.path.join('assets', 'disc_sprite.png'))
-DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
-
-START_X = 10
-START_Y = (HEIGHT - DISC_SIZE) / 2
-
-def draw_window(disc, graph_disc, colour, time, ticks=0):
+def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
     WIN.fill(colour)
     WIN.blit(DISC, (disc.x, disc.y))
+
     timer = 0
     if time >= 0:
         timer = int(TIME_LIMIT / 1000 - int(time / 1000))
@@ -50,6 +55,7 @@ def draw_window(disc, graph_disc, colour, time, ticks=0):
         pygame.draw.rect(WIN, RED, graph_disc, 0)
     timer_text = TIMER_FONT.render(str(timer), True, WHITE)
     WIN.blit(timer_text, (10,10))
+
     pygame.display.update()
 
 def controls(keys_pressed, disc):
@@ -71,12 +77,7 @@ def main():
     disc_pos_index = 0
     position_array = None
     
-    rotation = 1 #1 for CW, -1 for CCW
-    launch_speed = 22.35 #m/s
-    launch_va = 10 #deg
-    launch_ha = 90 #deg
-    nose = 0 #deg
-    roll = 12 #deg
+    parameters = Parameters()
 
     clock = pygame.time.Clock()
     run = True
@@ -88,12 +89,12 @@ def main():
         
         current_time = pygame.time.get_ticks()
         if pre_launch and current_time >= TIME_LIMIT:
-            position_array = throw(rotation, launch_speed, launch_va, launch_ha, nose, roll)
+            position_array = throw_wrapper(parameters)
             pre_launch = False
             transition_time = current_time
 
         if pre_launch:
-            draw_window(disc, graph_disc, GREEN, current_time)
+            draw_window(disc, parameters, graph_disc, GREEN, current_time)
             keys_pressed = pygame.key.get_pressed()
             controls(keys_pressed, disc)     
         else:
@@ -105,9 +106,9 @@ def main():
                     break
                 disc.x = START_X + current_position[0]*5
                 disc.y = START_Y + current_position[1]*5
-                graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]/4
+                graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - current_position[2]
-            draw_window(disc, graph_disc, BLACK, -1, disc_pos_index)
+            draw_window(disc, parameters, graph_disc, BLACK, -1, disc_pos_index)
 
     pygame.quit()
 

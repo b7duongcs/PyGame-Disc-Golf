@@ -18,17 +18,21 @@ GREEN = (0,128,0)
 RED = (255,0,0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+GREY = (220,220,220)
 
 #fonts
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
 GRAPH_FONT = pygame.font.Font('freesansbold.ttf', 10)
 ROTATION_FONT = pygame.font.Font('freesansbold.ttf', 25)
+POWER_FONT = pygame.font.Font('freesansbold.ttf', 25)
+ANGLE_FONT = pygame.font.Font('freesansbold.ttf', 15)
 
 #adjustment factors
 FT_TO_PIXELS = 5
 INTERVAL_LEN = 50
 BORDER = 10
 BAR_THICKNESS = 4
+UI_DISTANCE = 50
 
 #disc constants
 DISC_SIZE = 32
@@ -43,7 +47,8 @@ PIXELS_PER_MS = 7
 PB_X = START_X
 PB_Y = HEIGHT - (MAX_SPEED * PIXELS_PER_MS + BORDER)
 PB_WIDTH = 150
-POWER_BAR = pygame.Rect(PB_X, PB_Y, PB_WIDTH, MAX_SPEED * PIXELS_PER_MS)
+PB_HEIGHT = MAX_SPEED * PIXELS_PER_MS
+POWER_BAR = pygame.Rect(PB_X, PB_Y, PB_WIDTH, PB_HEIGHT)
 
 #rotation
 ROT_HEIGHT = 50
@@ -59,14 +64,45 @@ COVER_OFFSET = (ROT_WIDTH - 2*BAR_THICKNESS) / 2
 
 ROT_TEXT_Y = COVER_Y + BORDER
 
+#angle ui constants
+LINE_LEN = 100
+LINE_THICKNESS = 3
+ANGLE_UI_Y = PB_Y
+ANGLE_TITLE_Y_OFFSET = 30
+
+#vertical angle
+VA_BL_X = PB_X + PB_WIDTH + UI_DISTANCE
+
+#horizontal angle
+HA_BL_X = VA_BL_X + LINE_LEN + UI_DISTANCE
+
+#nose angle
+NA_BL_X = HA_BL_X + LINE_LEN + UI_DISTANCE
+
+#roll angle
+RA_BL_X = NA_BL_X + LINE_LEN + UI_DISTANCE
+
 #xz graph constants
-GRAPH_UPPER_Y_BOUND = HEIGHT - 65
-GRAPH_LOWER_Y_BOUND = HEIGHT - 15
+GRAPH_UPPER_Y_BOUND = HEIGHT - 65 - BORDER
+GRAPH_LOWER_Y_BOUND = HEIGHT - 15 - BORDER
 GRAPH_LOWER_X_BOUND = WIDTH - 215
 Z_BAR = pygame.Rect(GRAPH_LOWER_X_BOUND - 2, GRAPH_UPPER_Y_BOUND + 5, 2, 50)
 X_BAR = pygame.Rect(GRAPH_LOWER_X_BOUND - 2, GRAPH_LOWER_Y_BOUND + 5, 200, 2)
 GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
+
+def draw_angle_ui(x, angle, title):
+    mp_y = ANGLE_UI_Y + PB_HEIGHT/2
+    angle_x = LINE_LEN * np.cos(np.radians(angle))
+    angle_y = LINE_LEN * np.sin(np.radians(angle))
+
+    text = ANGLE_FONT.render(title, True, WHITE)
+    WIN.blit(text, (x, ANGLE_UI_Y - ANGLE_TITLE_Y_OFFSET))
+
+    pygame.draw.line(WIN, BLACK, (x, ANGLE_UI_Y), (x, ANGLE_UI_Y + PB_HEIGHT), LINE_THICKNESS)
+    pygame.draw.line(WIN, GREY, (x, mp_y), (x + LINE_LEN, mp_y), LINE_THICKNESS)
+    pygame.draw.line(WIN, RED, (x, mp_y), (x + angle_x, mp_y - angle_y), LINE_THICKNESS)
+    pygame.draw.circle(WIN, BLACK, (x, mp_y), 5)
 
 def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
     WIN.fill(colour)
@@ -99,13 +135,11 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         pygame.draw.rect(WIN, WHITE, POWER_BAR, BAR_THICKNESS)
         pygame.draw.rect(WIN, RED, power_bar_fill, 0)
 
-        #launch vertical angle
-
-        #launch horizontal angle
-
-        #launch nose angle
-
-        #launch roll angle
+        #draw angles
+        draw_angle_ui(VA_BL_X, parameters.launch_va, "Launch Angle")
+        draw_angle_ui(HA_BL_X, parameters.launch_ha, "Launch Direction")
+        draw_angle_ui(NA_BL_X, parameters.nose, "Nose Angle")
+        draw_angle_ui(RA_BL_X, parameters.roll, "Roll Angle")
 
 
     else:

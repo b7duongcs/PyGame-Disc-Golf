@@ -121,9 +121,7 @@ def throw(rotation, launch_speed, launch_va, launch_ha, nose, roll): #cw/ccw, m/
     ixy = 0.00134575
     iz = 0.0017675
     area = np.pi * (0.5 * diameter)**2
-    omega = launch_speed * 7.619
-    if rotation == "CCW":
-        omega = -omega
+    omega = launch_speed * 7.619 * rotation
     weight = g*mass
 
 

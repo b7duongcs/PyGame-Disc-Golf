@@ -70,6 +70,13 @@ def main():
     transition_time = 0
     disc_pos_index = 0
     position_array = None
+    
+    rotation = 1 #1 for CW, -1 for CCW
+    launch_speed = 22.35 #m/s
+    launch_va = 10 #deg
+    launch_ha = 90 #deg
+    nose = 0 #deg
+    roll = 12 #deg
 
     clock = pygame.time.Clock()
     run = True
@@ -81,7 +88,7 @@ def main():
         
         current_time = pygame.time.get_ticks()
         if pre_launch and current_time >= TIME_LIMIT:
-            position_array = throw("CW", 22.35, 10, 0, 0, 12)
+            position_array = throw(rotation, launch_speed, launch_va, launch_ha, nose, roll)
             pre_launch = False
             transition_time = current_time
 

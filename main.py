@@ -1,5 +1,6 @@
 import pygame
 import os
+import random
 from disc_flight import *
 from parameters import *
 
@@ -19,6 +20,8 @@ RED = (255,0,0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREY = (220,220,220)
+BROWN = (139,69,19)
+YELLOW = (255,255,0)
 
 #fonts
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
@@ -41,12 +44,14 @@ DISC_SIZE = 32
 DISC_IMAGE = pygame.image.load(os.path.join('assets', 'disc_sprite.png'))
 DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
 START_X = BORDER
-START_Y = (HEIGHT - DISC_SIZE) / 2
+#START_Y_DEF = (HEIGHT - DISC_SIZE) / 2 #center
+START_Y_LOWER = BORDER
+START_Y_UPPER = HEIGHT - BORDER - DISC_SIZE
 
 #launch speed
 MAX_SPEED = 27 #m/s
 PIXELS_PER_MS = 7
-PB_X = START_X + UI_OFFSET
+PB_X = BORDER + UI_OFFSET
 PB_Y = HEIGHT - (MAX_SPEED * PIXELS_PER_MS + BORDER)
 PB_WIDTH = 150
 PB_HEIGHT = MAX_SPEED * PIXELS_PER_MS
@@ -101,6 +106,16 @@ X_BAR = pygame.Rect(GRAPH_LOWER_X_BOUND - 2, GRAPH_LOWER_Y_BOUND + 5, 200, 2)
 GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
+#goal and obstacle
+GOAL_UPPER_Z = 1.33 #m
+GOAL_LOWER_Z =  0.65 #m
+OBSTACLE_Z = 5 #m
+OBJ_SIZE = 64
+OBJ_LOWER_Y = BORDER
+OBJ_UPPER_Y = HEIGHT - BORDER - OBJ_SIZE
+OBJ_LOWER_X = BORDER + 4*DISC_SIZE
+OBJ_UPPER_X = WIDTH - BORDER - OBJ_SIZE
+
 def draw_angle_ui(x, angle, title):
     mp_y = ANGLE_UI_Y + PB_HEIGHT/2
     angle_x = LINE_LEN * np.cos(np.radians(angle))
@@ -114,8 +129,8 @@ def draw_angle_ui(x, angle, title):
     pygame.draw.line(WIN, RED, (x, mp_y), (x + angle_x, mp_y - angle_y), LINE_THICKNESS)
     pygame.draw.circle(WIN, BLACK, (x, mp_y), 5)
 
-def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
-    WIN.fill(colour)
+def draw_window(disc, goal, obstacle, parameters, graph_disc, time, ticks=0):
+    WIN.fill(GREEN)
     WIN.blit(DISC, (disc.x, disc.y))
 
     timer = 0
@@ -148,18 +163,23 @@ def draw_window(disc, parameters, graph_disc, colour, time, ticks=0):
         WIN.blit(POWER_TITLE, (POWER_TITLE_X, POWER_TITLE_Y))
         WIN.blit(ROT_TITLE, (ROT_TITLE_X, ROT_TITLE_Y))
 
-        #draw angles
+        #draw goal and obstacle
+        pygame.draw.rect(WIN, YELLOW, goal, 0)
+        pygame.draw.rect(WIN, BROWN, obstacle, 0)
+
+        #draw angles ui
         draw_angle_ui(VA_BL_X, parameters.launch_va, "Launch Angle")
         draw_angle_ui(HA_BL_X, parameters.launch_ha, "Launch Direction")
         draw_angle_ui(NA_BL_X, parameters.nose, "Nose Angle")
         draw_angle_ui(RA_BL_X, parameters.roll, "Roll Angle")
-
 
     else:
         timer = int(ticks/20)
 
         #graph
         graph_title = GRAPH_FONT.render("Elevation (y) vs Forward Distance (x)", True, WHITE)
+        pygame.draw.rect(WIN, BLACK, goal, 0)
+        pygame.draw.rect(WIN, BROWN, obstacle, 0)
         WIN.blit(graph_title, (GRAPH_TITLE_X, GRAPH_TITLE_Y))
         pygame.draw.rect(WIN, WHITE, Z_BAR, 1)
         pygame.draw.rect(WIN, WHITE, X_BAR, 1)
@@ -212,8 +232,44 @@ def controls(keys_pressed, parameters):
         if parameters.roll < 90:
             parameters.roll += DEGREE_SCALE
 
+
+# (lx, ly)----(ux, ly)
+#    |             |
+#    |             |
+#    |             |
+# (lx, uy)----(ux, uy)
+def is_intersect(a_lx, a_ux, a_ly, a_uy, b_lx, b_ux, b_ly, b_uy):
+    if b_ux > a_lx and b_uy > b_uy:
+        return True
+    if b_lx < a_lx and b_uy > a_ly:
+        return True
+    if b_ux > a_lx and b_ly < a_uy:
+        return True
+    if b_lx < a_ux and b_ly < a_uy:
+        return True
+    return False
+
+
+def generate_obj():
+    goal_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
+    goal_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
+    obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
+    obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
+    #while obstacle_x == goal_x:
+    #    obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
+    #while obstacle_y == goal_y:
+    #    obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
+    while(is_intersect(goal_x, goal_x + OBJ_SIZE, goal_y, goal_y + OBJ_SIZE, obstacle_x, obstacle_x + OBJ_SIZE, obstacle_y, obstacle_y + OBJ_SIZE)):
+        obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
+        obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
+    goal = pygame.Rect(goal_x, goal_y, OBJ_SIZE, OBJ_SIZE)
+    obstacle = pygame.Rect(obstacle_x, obstacle_y, OBJ_SIZE, OBJ_SIZE)
+    return goal, obstacle
+
 def main():
-    disc = pygame.Rect(START_X, START_Y, DISC_SIZE, DISC_SIZE)
+    start_y = random.randrange(START_Y_LOWER, START_Y_UPPER)
+    goal, obstacle = generate_obj()
+    disc = pygame.Rect(START_X, start_y, DISC_SIZE, DISC_SIZE)
     graph_disc = pygame.Rect(GRAPH_LOWER_X_BOUND, GRAPH_LOWER_Y_BOUND, 5, 5)
     pre_launch = True
     current_time = 0
@@ -238,7 +294,7 @@ def main():
             transition_time = current_time
 
         if pre_launch:
-            draw_window(disc, parameters, graph_disc, GREEN, current_time)
+            draw_window(disc, goal, obstacle, parameters, graph_disc, current_time)
             keys_pressed = pygame.key.get_pressed()
             controls(keys_pressed, parameters)     
         else:
@@ -249,10 +305,10 @@ def main():
                 if current_position[2] <= 0:
                     break
                 disc.x = START_X + current_position[0]*FT_TO_PIXELS
-                disc.y = START_Y + current_position[1]*FT_TO_PIXELS
+                disc.y = start_y + current_position[1]*FT_TO_PIXELS
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - current_position[2]
-            draw_window(disc, parameters, graph_disc, BLACK, -1, disc_pos_index)
+            draw_window(disc, goal, obstacle, parameters, graph_disc, -1, disc_pos_index)
 
     pygame.quit()
 

@@ -19,9 +19,8 @@ GREEN = (0,128,0)
 RED = (255,0,0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-GREY = (220,220,220)
 BROWN = (139,69,19)
-BLUE = (30,144,255)
+GREY = (105,105,105)
 
 #fonts
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
@@ -108,9 +107,9 @@ GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
 #goal and obstacle
 GOAL_UPPER_Z = 1.33 * 3.28 #ft
-GOAL_LOWER_Z =  0.65 *3.28 #ft
+GOAL_LOWER_Z = 0.65 * 3.28 #ft
 GOAL_MP_Z = (GOAL_UPPER_Z + GOAL_LOWER_Z) / 2
-OBSTACLE_Z = 5 #m
+OBSTACLE_Z = 5  * 3.28 #ft
 OBJ_SIZE = 64
 OBJ_LOWER_Y = BORDER
 OBJ_UPPER_Y = HEIGHT - BORDER - OBJ_SIZE
@@ -126,7 +125,7 @@ def draw_angle_ui(x, angle, title):
     WIN.blit(text, (x + (LINE_LEN - text.get_width())/2, ANGLE_UI_Y - ANGLE_TITLE_Y_OFFSET))
 
     pygame.draw.line(WIN, BLACK, (x, ANGLE_UI_Y), (x, ANGLE_UI_Y + PB_HEIGHT), LINE_THICKNESS)
-    pygame.draw.line(WIN, GREY, (x, mp_y), (x + LINE_LEN, mp_y), LINE_THICKNESS)
+    pygame.draw.line(WIN, WHITE, (x, mp_y), (x + LINE_LEN, mp_y), LINE_THICKNESS)
     pygame.draw.line(WIN, RED, (x, mp_y), (x + angle_x, mp_y - angle_y), LINE_THICKNESS)
     pygame.draw.circle(WIN, BLACK, (x, mp_y), 5)
 
@@ -165,7 +164,7 @@ def draw_window(disc, goal, obstacle, parameters, graph_disc, time, ticks=0):
         WIN.blit(ROT_TITLE, (ROT_TITLE_X, ROT_TITLE_Y))
 
         #draw goal and obstacle
-        pygame.draw.rect(WIN, BLUE, goal, 0)
+        pygame.draw.rect(WIN, GREY, goal, 0)
         pygame.draw.rect(WIN, BROWN, obstacle, 0)
 
         #draw angles ui
@@ -177,13 +176,21 @@ def draw_window(disc, goal, obstacle, parameters, graph_disc, time, ticks=0):
     else:
         timer = int(ticks/20)
 
-        #graph
+        #graph bars
         graph_title = GRAPH_FONT.render("Elevation (y) vs Forward Distance (x)", True, WHITE)
-        pygame.draw.rect(WIN, BLUE, goal, 0)
+        pygame.draw.rect(WIN, GREY, goal, 0)
         pygame.draw.rect(WIN, BROWN, obstacle, 0)
         WIN.blit(graph_title, (GRAPH_TITLE_X, GRAPH_TITLE_Y))
         pygame.draw.rect(WIN, WHITE, Z_BAR, 1)
         pygame.draw.rect(WIN, WHITE, X_BAR, 1)
+        
+        #graph objects
+        graph_obs = pygame.Rect(GRAPH_LOWER_X_BOUND + obstacle.x/FT_TO_PIXELS, GRAPH_LOWER_Y_BOUND - OBSTACLE_Z, OBJ_SIZE/FT_TO_PIXELS, OBSTACLE_Z + 6)
+        graph_goal = pygame.Rect(GRAPH_LOWER_X_BOUND + goal.x/FT_TO_PIXELS, GRAPH_LOWER_Y_BOUND - GOAL_UPPER_Z, OBJ_SIZE/FT_TO_PIXELS, GOAL_UPPER_Z - GOAL_LOWER_Z)
+        graph_goal_post = pygame.Rect(GRAPH_LOWER_X_BOUND + goal.x/FT_TO_PIXELS + (OBJ_SIZE/FT_TO_PIXELS)/2 - 2, GRAPH_LOWER_Y_BOUND - GOAL_UPPER_Z, 2, GOAL_LOWER_Z * FT_TO_PIXELS)
+        pygame.draw.rect(WIN, BROWN, graph_obs, 0)
+        pygame.draw.rect(WIN, BLACK, graph_goal_post, 0)
+        pygame.draw.rect(WIN, GREY, graph_goal, 0)
         pygame.draw.rect(WIN, RED, graph_disc, 0)
 
     timer_text = TIMER_FONT.render(str(timer), True, WHITE)
@@ -310,7 +317,7 @@ def main():
                 current_position = position_array[disc_pos_index]
                 disc_z = current_position[2]
                 if disc_z <= 0:
-                    print("landed")
+                    print("Landed")
                     break
                 disc.x = START_X + current_position[0]*FT_TO_PIXELS
                 disc.y = start_y + current_position[1]*FT_TO_PIXELS
@@ -332,8 +339,8 @@ def main():
                 if disc_z <= OBSTACLE_Z:
                     print("Hit Obstacle")
                     break
-                else:
-                    print("Above obstacle: ", disc_z)
+                #else:
+                #    print("Above obstacle: ", disc_z)
     print("Minimum distance from goal (ft): ", min_distance/FT_TO_PIXELS)
     pygame.quit()
 

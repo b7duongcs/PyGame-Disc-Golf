@@ -304,20 +304,25 @@ def main():
                 current_position = position_array[disc_pos_index]
                 disc_z = current_position[2]
                 if disc_z <= 0:
+                    print("landed")
                     break
                 disc.x = START_X + current_position[0]*FT_TO_PIXELS
                 disc.y = start_y + current_position[1]*FT_TO_PIXELS
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - disc_z
             draw_window(disc, goal, obstacle, parameters, graph_disc, -1, disc_pos_index)
-            if is_intersect(disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE, goal.x, goal.x + OBJ_SIZE, goal.y, goal.y + OBJ_SIZE):
+            if is_intersect(goal.x, goal.x + OBJ_SIZE, goal.y, goal.y + OBJ_SIZE, disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE):
                 if GOAL_LOWER_Z <= disc_z and disc_z <= GOAL_UPPER_Z:
                     print("Goal")
                     break
-            if is_intersect(disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE, obstacle.x, obstacle.x + OBJ_SIZE, obstacle.y, obstacle.y + OBJ_SIZE):
+                else:
+                    print("Wrong Z: ", disc_z)
+            if is_intersect(obstacle.x, obstacle.x + OBJ_SIZE, obstacle.y, obstacle.y + OBJ_SIZE, disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE):
                 if disc_z <= OBSTACLE_Z:
                     print("Hit Obstacle")
-                    break  
+                    break
+                else:
+                    print("Wrong Z: ", disc_z)
 
     pygame.quit()
 

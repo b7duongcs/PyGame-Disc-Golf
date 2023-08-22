@@ -316,13 +316,13 @@ def main():
                     print("Goal")
                     break
                 else:
-                    print("Wrong Z: ", disc_z)
+                    print("Not within goal height: ", disc_z)
             if is_intersect(obstacle.x, obstacle.x + OBJ_SIZE, obstacle.y, obstacle.y + OBJ_SIZE, disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE):
                 if disc_z <= OBSTACLE_Z:
                     print("Hit Obstacle")
                     break
                 else:
-                    print("Wrong Z: ", disc_z)
+                    print("Above obstacle: ", disc_z)
 
     pygame.quit()
 

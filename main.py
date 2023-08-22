@@ -107,8 +107,9 @@ GRAPH_TITLE_X = GRAPH_LOWER_X_BOUND
 GRAPH_TITLE_Y = GRAPH_UPPER_Y_BOUND - 20
 
 #goal and obstacle
-GOAL_UPPER_Z = 1.33 #m
-GOAL_LOWER_Z =  0.65 #m
+GOAL_UPPER_Z = 1.33 * 3.28 #ft
+GOAL_LOWER_Z =  0.65 *3.28 #ft
+GOAL_MP_Z = (GOAL_UPPER_Z + GOAL_LOWER_Z) / 2
 OBSTACLE_Z = 5 #m
 OBJ_SIZE = 64
 OBJ_LOWER_Y = BORDER
@@ -238,6 +239,7 @@ def controls(keys_pressed, parameters):
 #    |             |
 #    |             |
 # (lx, uy)----(ux, uy)
+# may break if a and b are switched
 def is_intersect(a_lx, a_ux, a_ly, a_uy, b_lx, b_ux, b_ly, b_uy):
     if a_lx < b_ux and b_ux < a_ux and a_ly < b_uy and b_uy < a_uy:
         return True
@@ -255,16 +257,18 @@ def generate_obj():
     goal_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
     obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
     obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
-    #while obstacle_x == goal_x:
-    #    obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
-    #while obstacle_y == goal_y:
-    #    obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
     while(is_intersect(goal_x, goal_x + OBJ_SIZE, goal_y, goal_y + OBJ_SIZE, obstacle_x, obstacle_x + OBJ_SIZE, obstacle_y, obstacle_y + OBJ_SIZE)):
         obstacle_x = random.randrange(OBJ_LOWER_X, OBJ_UPPER_X)
         obstacle_y = random.randrange(OBJ_LOWER_Y, OBJ_UPPER_Y)
     goal = pygame.Rect(goal_x, goal_y, OBJ_SIZE, OBJ_SIZE)
     obstacle = pygame.Rect(obstacle_x, obstacle_y, OBJ_SIZE, OBJ_SIZE)
     return goal, obstacle
+
+def get_distance(disc, goal):
+    x_diff_sq = (disc[0] - goal[0])**2
+    y_diff_sq = (disc[1] - goal[1])**2
+    z_diff_sq = (disc[2] - goal[2])**2
+    return np.sqrt(x_diff_sq + y_diff_sq + z_diff_sq)
 
 def main():
     start_y = random.randrange(START_Y_LOWER, START_Y_UPPER)
@@ -276,6 +280,8 @@ def main():
     transition_time = 0
     disc_pos_index = 0
     position_array = None
+    disc_z = LAUNCH_HEIGHT
+    min_distance = np.inf
     
     parameters = Parameters()
 
@@ -311,8 +317,13 @@ def main():
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - disc_z
             draw_window(disc, goal, obstacle, parameters, graph_disc, -1, disc_pos_index)
+            disc_mp_xyz = [disc.x + DISC_SIZE/2, disc.y + DISC_SIZE/2, disc_z*FT_TO_PIXELS]
+            goal_mp_xyz= [goal.x + OBJ_SIZE/2, goal.y + OBJ_SIZE/2, GOAL_MP_Z*FT_TO_PIXELS]
+            min_distance = min(min_distance, get_distance(disc_mp_xyz, goal_mp_xyz))
             if is_intersect(goal.x, goal.x + OBJ_SIZE, goal.y, goal.y + OBJ_SIZE, disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE):
                 if GOAL_LOWER_Z <= disc_z and disc_z <= GOAL_UPPER_Z:
+                    print("Previous minimum distance from goal (ft): ", min_distance/FT_TO_PIXELS)
+                    min_distance = 0
                     print("Goal")
                     break
                 else:
@@ -323,7 +334,7 @@ def main():
                     break
                 else:
                     print("Above obstacle: ", disc_z)
-
+    print("Minimum distance from goal (ft): ", min_distance/FT_TO_PIXELS)
     pygame.quit()
 
 if __name__ == "__main__":

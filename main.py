@@ -12,7 +12,7 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
 FPS = 60
 TICKS_PER_FRAME = 1000/FPS
-TIME_LIMIT = 2000
+TIME_LIMIT = 5000
 
 #colours
 GREEN = (0,128,0)

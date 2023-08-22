@@ -197,3 +197,10 @@ def throw(rotation, launch_speed, launch_va, launch_ha, nose, roll): #cw/ccw, m/
 
 def throw_wrapper(parameters):
     return throw(parameters.rotation, parameters.launch_speed, parameters.launch_va, parameters.launch_ha, parameters.nose, parameters.roll)
+    
+    #test throw function
+    #position_array = [None] * 100
+    #start_z = 80
+    #for index, position in enumerate(position_array):
+    #    position_array[index] = (index, 0, start_z - index)
+    #return position_array

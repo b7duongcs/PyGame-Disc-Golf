@@ -12,7 +12,7 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
 FPS = 60
 TICKS_PER_FRAME = 1000/FPS
-TIME_LIMIT = 10000
+TIME_LIMIT = 2000
 
 #colours
 GREEN = (0,128,0)
@@ -21,7 +21,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREY = (220,220,220)
 BROWN = (139,69,19)
-YELLOW = (255,255,0)
+BLUE = (30,144,255)
 
 #fonts
 TIMER_FONT = pygame.font.Font('freesansbold.ttf', 32)
@@ -164,7 +164,7 @@ def draw_window(disc, goal, obstacle, parameters, graph_disc, time, ticks=0):
         WIN.blit(ROT_TITLE, (ROT_TITLE_X, ROT_TITLE_Y))
 
         #draw goal and obstacle
-        pygame.draw.rect(WIN, YELLOW, goal, 0)
+        pygame.draw.rect(WIN, BLUE, goal, 0)
         pygame.draw.rect(WIN, BROWN, obstacle, 0)
 
         #draw angles ui
@@ -178,7 +178,7 @@ def draw_window(disc, goal, obstacle, parameters, graph_disc, time, ticks=0):
 
         #graph
         graph_title = GRAPH_FONT.render("Elevation (y) vs Forward Distance (x)", True, WHITE)
-        pygame.draw.rect(WIN, BLACK, goal, 0)
+        pygame.draw.rect(WIN, BLUE, goal, 0)
         pygame.draw.rect(WIN, BROWN, obstacle, 0)
         WIN.blit(graph_title, (GRAPH_TITLE_X, GRAPH_TITLE_Y))
         pygame.draw.rect(WIN, WHITE, Z_BAR, 1)
@@ -239,13 +239,13 @@ def controls(keys_pressed, parameters):
 #    |             |
 # (lx, uy)----(ux, uy)
 def is_intersect(a_lx, a_ux, a_ly, a_uy, b_lx, b_ux, b_ly, b_uy):
-    if b_ux > a_lx and b_uy > b_uy:
+    if a_lx < b_ux and b_ux < a_ux and a_ly < b_uy and b_uy < a_uy:
         return True
-    if b_lx < a_lx and b_uy > a_ly:
+    if a_lx < b_ux and b_ux < a_ux and a_ly < b_ly and b_ly < a_uy:
         return True
-    if b_ux > a_lx and b_ly < a_uy:
+    if a_lx < b_lx and b_lx < a_ux and a_ly < b_uy and b_uy < a_uy:
         return True
-    if b_lx < a_ux and b_ly < a_uy:
+    if a_lx < b_lx and b_lx < a_ux and a_ly < b_ly and b_ly < a_uy:
         return True
     return False
 
@@ -302,13 +302,22 @@ def main():
             if launching_time > disc_pos_index * INTERVAL_LEN:
                 disc_pos_index += 1
                 current_position = position_array[disc_pos_index]
-                if current_position[2] <= 0:
+                disc_z = current_position[2]
+                if disc_z <= 0:
                     break
                 disc.x = START_X + current_position[0]*FT_TO_PIXELS
                 disc.y = start_y + current_position[1]*FT_TO_PIXELS
                 graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
-                graph_disc.y = GRAPH_LOWER_Y_BOUND - current_position[2]
+                graph_disc.y = GRAPH_LOWER_Y_BOUND - disc_z
             draw_window(disc, goal, obstacle, parameters, graph_disc, -1, disc_pos_index)
+            if is_intersect(disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE, goal.x, goal.x + OBJ_SIZE, goal.y, goal.y + OBJ_SIZE):
+                if GOAL_LOWER_Z <= disc_z and disc_z <= GOAL_UPPER_Z:
+                    print("Goal")
+                    break
+            if is_intersect(disc.x, disc.x + DISC_SIZE, disc.y, disc.y + DISC_SIZE, obstacle.x, obstacle.x + OBJ_SIZE, obstacle.y, obstacle.y + OBJ_SIZE):
+                if disc_z <= OBSTACLE_Z:
+                    print("Hit Obstacle")
+                    break  
 
     pygame.quit()
 

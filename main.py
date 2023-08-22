@@ -277,6 +277,14 @@ def get_distance(disc, goal):
     z_diff_sq = (disc[2] - goal[2])**2
     return np.sqrt(x_diff_sq + y_diff_sq + z_diff_sq)
 
+def adjust_for_launch_angle(parameters, o_x, o_y, p_x, p_y):
+    theta = parameters.launch_ha * -1
+    diff_x = p_x - o_x
+    diff_y = p_y - o_y
+    x = (diff_x * np.cos(np.radians(theta))) - (diff_y * np.sin(np.radians(theta)))
+    y = (diff_y * np.cos(np.radians(theta))) + (diff_x * np.sin(np.radians(theta)))
+    return (x + o_x), (y + o_y)
+
 def main():
     start_y = random.randrange(START_Y_LOWER, START_Y_UPPER)
     goal, obstacle = generate_obj()
@@ -312,7 +320,7 @@ def main():
             controls(keys_pressed, parameters)     
         else:
             launching_time = current_time - transition_time
-            if launching_time > disc_pos_index * INTERVAL_LEN:
+            if launching_time > (disc_pos_index + 1) * INTERVAL_LEN:
                 disc_pos_index += 1
                 current_position = position_array[disc_pos_index]
                 disc_z = current_position[2]
@@ -321,7 +329,8 @@ def main():
                     break
                 disc.x = START_X + current_position[0]*FT_TO_PIXELS
                 disc.y = start_y + current_position[1]*FT_TO_PIXELS
-                graph_disc.x = GRAPH_LOWER_X_BOUND + current_position[0]
+                disc.x, disc.y = adjust_for_launch_angle(parameters, START_X, start_y, disc.x, disc.y)
+                graph_disc.x = GRAPH_LOWER_X_BOUND + (disc.x - START_X)/FT_TO_PIXELS
                 graph_disc.y = GRAPH_LOWER_Y_BOUND - disc_z
             draw_window(disc, goal, obstacle, parameters, graph_disc, -1, disc_pos_index)
             disc_mp_xyz = [disc.x + DISC_SIZE/2, disc.y + DISC_SIZE/2, disc_z*FT_TO_PIXELS]

@@ -7,9 +7,9 @@ pygame.init()
 WIDTH, HEIGHT = 1000, 900
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Disc Golf")
-FPS = 60
+FPS = 600
 TICKS_PER_FRAME = 1000/FPS
-TIME_LIMIT = 6000
+TIME_LIMIT = 1000
 
 #colours
 GREEN = (0,128,0)
@@ -37,12 +37,14 @@ UI_OFFSET = 225
 
 #disc constants
 DISC_SIZE = 32
-DISC_IMAGE = pygame.image.load(os.path.join('assets', 'disc_sprite.png'))
+DISC_IMAGE = pygame.image.load(os.path.join('..', 'assets', 'disc_sprite.png'))
 DISC = pygame.transform.scale(DISC_IMAGE, (DISC_SIZE, DISC_SIZE))
 START_X = BORDER
 #START_Y_DEF = (HEIGHT - DISC_SIZE) / 2 #center
-START_Y_LOWER = BORDER
-START_Y_UPPER = HEIGHT - BORDER - DISC_SIZE
+#START_Y_LOWER = BORDER
+#START_Y_UPPER = HEIGHT - BORDER - DISC_SIZE
+START_Y_LOWER = BORDER + HEIGHT / 3 #easier
+START_Y_UPPER = HEIGHT - BORDER - HEIGHT / 3 #easier
 
 #launch speed
 MAX_SPEED = 27 #m/s
